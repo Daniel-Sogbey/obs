@@ -4,19 +4,15 @@
 
 `obs` is a lightweight structured observability toolkit for Go goroutines.
 
-It allows you to:
+It helps you:
 
 - Track goroutine lifecycle
-- Build parent–child concurrency trees
+- Model parent–child task relationships
 - Detect slow or leaked tasks
-- Visualize live state via CLI
-- Inspect runtime behavior through an HTTP endpoint
+- Visualize concurrency trees in real time
+- Inspect state via an HTTP debug endpoint
 
 Designed to be minimal, explicit, and production-friendly.
-
----
-
-![img](./docs/test_view.png)
 
 ---
 
@@ -50,15 +46,20 @@ go build -o obs ./cmd/obs
 
 ---
 
-## 🚀 Quick Start
+# 🚀 Quick Start (HTTP Example)
 
-### 1️⃣ Enable Observability
+Below is a minimal HTTP server example using `obs`.
+
+## 1️⃣ Enable Observability
 
 ```go
 package main
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/Daniel-Sogbey/obs/obs"
 )
 
@@ -66,43 +67,50 @@ func main() {
 	obs.Enable()
 	obs.Listen(":7070")
 
-	ctx := obs.With(context.Background(), "app")
+	root := obs.With(context.Background(), "http-app")
 
-	go worker(ctx)
+	http.HandleFunc("/fast", func(w http.ResponseWriter, r *http.Request) {
+		handleRequest(root, "request /fast", 500*time.Millisecond)
+		w.Write([]byte("fast response"))
+	})
 
-	select {}
+	http.HandleFunc("/slow", func(w http.ResponseWriter, r *http.Request) {
+		handleRequest(root, "request /slow", 3*time.Second)
+		w.Write([]byte("slow response"))
+	})
+
+	http.ListenAndServe(":8080", nil)
 }
-```
 
----
-
-### 2️⃣ Track Goroutines
-
-```go
-func worker(parent context.Context) {
-	ctx := obs.With(parent, "worker")
+func handleRequest(parent context.Context, name string, delay time.Duration) {
+	ctx := obs.With(parent, name)
 	t := obs.FromContext(ctx)
 	defer t.Done()
 
 	t.MarkActive()
-	doWork()
+	time.Sleep(delay)
 	t.MarkIdle()
 }
 ```
 
-Each goroutine should call `obs.With()` once at startup.
+---
+
+## 2️⃣ Start Server
+
+```bash
+go run main.go
+```
+
+Visit:
+
+```
+http://localhost:8080/fast
+http://localhost:8080/slow
+```
 
 ---
 
-### 3️⃣ Inspect via CLI
-
-Tree view:
-
-```bash
-obs tree
-```
-
-Live dashboard:
+## 3️⃣ Inspect Live Concurrency Tree
 
 ```bash
 obs tree --watch
@@ -122,10 +130,11 @@ http-app ● RUNNING 12.41s
   request /fast ● COMPLETED 501ms
   request /slow ● RUNNING 2.98s
 ```
-
+---
+![img](./docs/test_view.png)   
 ---
 
-##  Debug Endpoint
+# Debug Endpoint
 
 By default:
 
@@ -141,7 +150,6 @@ Returns:
     "id": 1,
     "name": "http-app",
     "parent_id": 0,
-    "start_time_at": "2026-02-17T11:34:29Z",
     "state": "running",
     "duration": 12412500000
   }
@@ -150,7 +158,7 @@ Returns:
 
 ---
 
-## 🛠 CLI Commands
+# 🛠 CLI Commands
 
 ### Tree View
 
@@ -196,9 +204,9 @@ obs leaks
 
 ---
 
-## How It Works
+# How It Works
 
-- `obs.With()` creates a new logical tracker
+- `obs.With()` creates a logical tracker
 - Trackers are stored in a concurrent registry
 - Parent–child relationships are derived from context propagation
 - `Snapshot()` creates immutable state views
@@ -211,7 +219,7 @@ This models structured concurrency explicitly.
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```
 cmd/obs/       → CLI tool
@@ -221,7 +229,7 @@ examples/      → Demo usage
 
 ---
 
-##  What This Is Not
+#  What This Is Not
 
 - Not a Go scheduler inspector
 - Not a `pprof` replacement
@@ -231,7 +239,7 @@ It tracks logical concurrent tasks you instrument.
 
 ---
 
-## Design Philosophy
+#  Design Philosophy
 
 - Explicit instrumentation
 - Context-driven structure
@@ -242,13 +250,7 @@ It tracks logical concurrent tasks you instrument.
 
 ---
 
-## License
-
-MIT
-
----
-
-## 🤝 Contributing
+# 🤝 Contributing
 
 PRs welcome.
 
@@ -258,27 +260,6 @@ If you add features, keep the core principles:
 - No runtime magic
 - Clean separation of concerns
 - Production-safe behavior
-
----
-
-## Examples
-
-See:
-
-```
-examples/basic/
-examples/httpserver/
-```
-
----
-
-##  Roadmap
-
-- Smarter leak detection
-- Tree sorting strategies
-- Quality tests
-- Performance benchmarks
-- Web dashboard
 
 ---
 
