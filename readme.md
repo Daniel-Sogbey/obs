@@ -106,7 +106,7 @@ obs tree --watch
 
 ---
 
-## 🖥 Example Output
+## Example Output
 
 ```
 OBSERVABILITY
@@ -121,7 +121,7 @@ http-app ● RUNNING 12.41s
 
 ---
 
-## 📡 Debug Endpoint
+##  Debug Endpoint
 
 By default:
 
