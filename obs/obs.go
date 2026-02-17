@@ -10,13 +10,6 @@ import (
 	"time"
 )
 
-// TODO: TRACKER INTERFACE WITH ALL METHODS TO IMPLEMENT
-type ITracker interface {
-	Done()
-	MarkActive()
-	MarkIdle()
-}
-
 type trackerKey struct{}
 
 var registry sync.Map
@@ -215,5 +208,3 @@ func (t *Tracker) duration() time.Duration {
 
 	return time.Duration(end - t.startedAt.UnixNano())
 }
-
-func (t *Tracker) Emit(event string) {}
