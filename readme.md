@@ -16,6 +16,10 @@ Designed to be minimal, explicit, and production-friendly.
 
 ---
 
+![img](./docs/test_view.png)
+
+---
+
 ## Features
 
 - Structured goroutine tracking via `context`

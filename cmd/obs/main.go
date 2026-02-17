@@ -165,8 +165,6 @@ func runTree(addr string, watch bool, interval time.Duration) error {
 			return nil
 		}
 
-		log.Println("INTERVAL-- ", interval)
-
 		time.Sleep(interval)
 	}
 }
