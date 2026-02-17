@@ -88,7 +88,7 @@ func Listen(addr string) error {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(snapshots)
+		_ = json.NewEncoder(w).Encode(snapshots)
 	})
 
 	go func() {

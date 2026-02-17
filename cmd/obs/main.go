@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -69,7 +70,7 @@ func main() {
 		addr := treeCmd.String("addr", defaultAddr, "observability endpoint address")
 		watch := treeCmd.Bool("watch", false, "live update view")
 		interval := treeCmd.Duration("interval", 1*time.Second, "refresh interval")
-		treeCmd.Parse(os.Args[2:])
+		_ = treeCmd.Parse(os.Args[2:])
 
 		log.Println("INTERVAL-- ", interval)
 
@@ -78,20 +79,20 @@ func main() {
 	case "list":
 		listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 		addr := listCmd.String("addr", defaultAddr, "observability endpoint address")
-		listCmd.Parse(os.Args[2:])
+		_ = listCmd.Parse(os.Args[2:])
 		handleError(runList(*addr))
 
 	case "slow":
 		slowCmd := flag.NewFlagSet("slow", flag.ExitOnError)
 		addr := slowCmd.String("addr", defaultAddr, "observability endpoint address")
 		threshold := slowCmd.Duration("threshold", 2*time.Second, "duration threshold (e.g. 2s, 500ms)")
-		slowCmd.Parse(os.Args[2:])
+		_ = slowCmd.Parse(os.Args[2:])
 		handleError(runSlow(*addr, *threshold))
 
 	case "leaks":
 		leaksCmd := flag.NewFlagSet("leaks", flag.ExitOnError)
 		addr := leaksCmd.String("addr", defaultAddr, "observability endpoint address")
-		leaksCmd.Parse(os.Args[2:])
+		_ = leaksCmd.Parse(os.Args[2:])
 		handleError(runLeaks(*addr))
 
 	default:
@@ -119,7 +120,12 @@ func fetchSnapshots(addr string) ([]obs.TrackerSnapshot, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)

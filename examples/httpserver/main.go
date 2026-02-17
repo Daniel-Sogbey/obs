@@ -13,7 +13,7 @@ import (
 func main() {
 	// Enable observability
 	obs.Enable()
-	obs.Listen(":7070") // debug endpoint
+	_ = obs.Listen(":7070") // debug endpoint
 
 	// Root tracker
 	rootCtx := obs.With(context.Background(), "http-app")
