@@ -102,7 +102,7 @@ func main() {
 
 func usage() {
 	fmt.Println("Usage:")
-	fmt.Println("  obs tree [--addr=URL]")
+	fmt.Println("  obs tree [--addr=URL] [--watch] [--intervals=1s]")
 	fmt.Println("  obs list [--addr=URL]")
 	fmt.Println("  obs slow --threshold=2s [--addr=URL]")
 	fmt.Println("  obs leaks [--addr=URL]")
@@ -153,7 +153,7 @@ func runTree(addr string, watch bool, interval time.Duration) error {
 		clearScreen()
 		printHeader()
 
-		fmt.Printf("%sActive Goroutines: %d%s\n\n",
+		fmt.Printf("%sAll Goroutines: %d%s\n\n",
 			neonBlue,
 			len(snapshots),
 			reset,

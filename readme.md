@@ -38,11 +38,127 @@ Install the library:
 go get github.com/Daniel-Sogbey/obs
 ```
 
-Build the CLI:
+Install the CLI:
 
 ```bash
-go build -o obs ./cmd/obs
+go install github.com/Daniel-Sogbey/obs/cmd/obs
 ```
+
+---
+
+# 🐳 Running with Docker
+
+By default, `obs` listens on port **7070**:
+
+```go
+obs.Enable()
+obs.Listen(":7070")
+```
+
+If your application runs inside a Docker container, you must expose the observability port so the CLI can access it.
+
+---
+
+## Example: Docker Run
+
+If your app listens on:
+
+- `:8080` → application traffic
+- `:7070` → obs debug endpoint
+
+Run your container like this:
+
+```bash
+docker run \
+  -p 8080:8080 \
+  -p 7070:7070 \
+  myapp
+```
+
+Now the `obs` CLI can access:
+
+```
+http://localhost:7070/debug/obs
+```
+
+And you can run:
+
+```bash
+obs tree --watch
+```
+
+---
+
+## Example: Docker Compose
+
+```yaml
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+      - "7070:7070"
+```
+
+Then start:
+
+```bash
+docker compose up
+```
+
+---
+
+## Inspecting from the Host
+
+Once port `7070` is exposed, the CLI works normally:
+
+```bash
+obs tree
+```
+
+Or explicitly:
+
+```bash
+obs tree --addr=http://localhost:7070/debug/obs
+```
+
+---
+
+## ⚠️ Important
+
+If you do NOT expose port `7070`, the CLI will not be able to connect to the container from your host machine.
+
+In that case, you can:
+
+- Expose the port (recommended for local development), or
+- Use `docker exec` to inspect from inside the container.
+
+Example:
+
+```bash
+docker exec -it <container-id> sh
+obs tree --addr=http://localhost:7070/debug/obs
+```
+
+---
+
+## 🔒 Production Note
+
+The `/debug/obs` endpoint should be:
+
+- Disabled in production, or
+- Protected behind internal networking, or
+- Exposed only in development environments
+
+You control this via:
+
+```go
+obs.Enable()
+```
+
+If `obs.Enable()` is not called, tracking remains disabled.
 
 ---
 
