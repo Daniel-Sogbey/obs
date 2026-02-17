@@ -1,3 +1,5 @@
+![CI](https://github.com/Daniel-Sogbey/obs/actions/workflows/ci.yml/badge.svg)
+
 # 🔭 obs — Goroutine Observability for Go
 
 `obs` is a lightweight structured observability toolkit for Go goroutines.
